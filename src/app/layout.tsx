@@ -3,6 +3,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Navbar from "./components/Navbar";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const font = Inter({
   variable: "--font-inter",
@@ -11,10 +12,12 @@ const font = Inter({
 
 export const metadata: Metadata = {
   title: "Elogiador de GitHub",
-  description: "Análise profissional do seu perfil GitHub com feedback construtivo.",
+  description:
+    "Análise profissional do seu perfil GitHub com feedback construtivo.",
   openGraph: {
     title: "Elogiador de GitHub",
-    description: "Análise profissional do seu perfil GitHub com feedback construtivo.",
+    description:
+      "Análise profissional do seu perfil GitHub com feedback construtivo.",
   },
 };
 
@@ -31,6 +34,7 @@ export default function RootLayout({
         <Navbar />
         {children}
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
