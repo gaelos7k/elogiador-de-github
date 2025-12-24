@@ -1,0 +1,189 @@
+"use client";
+
+import { useState, FormEvent } from "react";
+import Markdown from "react-markdown";
+import getGitHubProfile from "@/services/getGitHubProfile";
+import shuffleArray from "@/utils/shuffleArray";
+import UserInput from "./UserInput";
+import ErrorMessage from "./ErrorMessage";
+import i18n from "@/services/i18n";
+
+type APIBody = GitHubUser & { repos: GitHubRepo[]; language: string };
+
+interface GitHubUser {
+  username: string;
+  name?: string;
+  bio?: string;
+  createdAt: string;
+  location?: string;
+  publicRepos: number;
+  followers: number;
+  following: number;
+}
+
+interface GitHubRepo {
+  name: string;
+  description?: string;
+  isFork: boolean;
+  createdAt: string;
+  updatedAt: string;
+  stars: number;
+  language?: string;
+  forksCount: number;
+  isArchived: boolean;
+  openIssues: number;
+}
+
+export default function UserSection() {
+  const { t } = i18n;
+  const [isLoading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [text, setText] = useState("");
+  const [avatar, setAvatar] = useState("");
+  const [name, setName] = useState("");
+
+  async function handleSubmit(e: FormEvent) {
+    const data = new FormData(e.target as HTMLFormElement);
+    const username = data.get("username");
+
+    e.preventDefault();
+
+    if (!username) {
+      setError(t("errors.noUser"));
+      return;
+    }
+
+    setText("");
+    setError("");
+    setLoading(true);
+
+    try {
+      const { user, repos } = await getGitHubProfile(username as string);
+
+      setAvatar(user.avatar_url);
+      setName(user.name ?? user.login);
+
+      // Pegar repos não arquivados e não forks
+      const activeRepos = repos.filter(r => !r.archived && !r.fork);
+      
+      // Se não tiver repos ativos suficientes, usar todos
+      const reposToUse = activeRepos.length >= 5 ? activeRepos : repos;
+      
+      // Embaralhar e pegar 5
+      shuffleArray(reposToUse);
+      const analysisRepos = reposToUse.slice(0, 5);
+
+      // Garantir que o repo mais popular está incluído
+      const sortedByStars = [...reposToUse].sort(
+        (a, b) => b.stargazers_count - a.stargazers_count
+      );
+      const mostPopularRepo = sortedByStars[0];
+      
+      if (mostPopularRepo && analysisRepos.findIndex((v) => v.id === mostPopularRepo.id) === -1) {
+        analysisRepos[0] = mostPopularRepo;
+      }
+
+      // Remover duplicatas por ID (garantia extra)
+      const uniqueRepos = Array.from(
+        new Map(analysisRepos.map(r => [r.id, r])).values()
+      ).slice(0, 5);
+
+      const body: APIBody = {
+        username: user.login,
+        createdAt: user.created_at,
+        publicRepos: user.public_repos,
+        followers: user.followers,
+        following: user.following,
+        repos: uniqueRepos.map((v) => ({
+          name: v.name,
+          description: v.description ?? undefined,
+          isFork: v.fork,
+          createdAt: v.created_at,
+          updatedAt: v.updated_at,
+          stars: v.stargazers_count,
+          language: v.language ?? undefined,
+          forksCount: v.forks_count,
+          isArchived: v.archived,
+          openIssues: v.open_issues,
+        })),
+        language: i18n.language,
+      };
+
+      if (user.name) body.name = user.name;
+      if (user.bio) body.bio = user.bio;
+      if (user.location) body.location = user.location;
+
+      const res = await fetch("/api/analyze", {
+        method: "POST",
+        body: JSON.stringify(body),
+      });
+      if (res.status != 200) {
+        let errMessage = res.statusText || "HTTP Status " + res.status;
+
+        if (res.status == 504) {
+          errMessage = t("errors.timeout");
+        } else {
+          try {
+            const apiData = await res.json();
+            if (apiData.error) errMessage = apiData.error;
+          } catch {}
+        }
+
+        throw new Error(errMessage);
+      } else if (res.body) {
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder("utf-8");
+
+        let chunk;
+        let content = "";
+        while (!(chunk = await reader.read())?.done) {
+          content += decoder.decode(chunk.value);
+          setText(content);
+        }
+      }
+
+      setLoading(false);
+    } catch (e) {
+      setText("");
+      setError((e as Error).message);
+      setLoading(false);
+
+      console.error(e);
+
+      return;
+    }
+  }
+
+  return (
+    <section>
+      <form className="w-fit mx-auto" onSubmit={handleSubmit}>
+        <UserInput isLoading={isLoading} />
+      </form>
+
+      {text && (
+        <div className="mt-10 bg-white rounded-2xl shadow-2xl shadow-emerald-100 p-8 border border-emerald-100/50 backdrop-blur-sm animate-fade-in">
+          <div className="flex flex-col items-center mb-8">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <div className="relative group">
+              <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-300"></div>
+              <img
+                src={avatar}
+                alt="avatar"
+                className="relative size-32 rounded-full border-4 border-white bg-zinc-50 select-none shadow-xl"
+              />
+            </div>
+
+            <h2 className="mt-4 text-center text-2xl font-bold text-zinc-800">{name}</h2>
+            <div className="h-1 w-20 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 rounded-full mt-2"></div>
+          </div>
+
+          <div className="prose prose-lg prose-zinc max-w-none [&_p]:mt-4 [&_p]:leading-relaxed [&_p]:text-zinc-700 [&_strong]:text-emerald-600 [&_strong]:font-bold [&_ol]:list-decimal [&_ul]:list-disc [&_li]:ml-4 list-inside">
+            {<Markdown>{text}</Markdown>}
+          </div>
+        </div>
+      )}
+
+      {error && <ErrorMessage error={error} />}
+    </section>
+  );
+}
