@@ -39,7 +39,6 @@ const client = new OpenAI({
 });
 
 export async function POST(req: Request) {
-  // Validação de variáveis de ambiente obrigatórias
   if (!process.env.BASE_URL || !process.env.API_KEY || !process.env.MODEL) {
     console.error("Missing required environment variables");
     return Response.json(
@@ -189,10 +188,25 @@ REGRAS:
       },
     });
   } catch (e) {
-    if ((e as APIError).status == 429) {
+    const apiError = e as APIError;
+    console.error("API Error:", apiError);
+
+    if (apiError.status == 429) {
       return Response.json(
         {
-          error: "O servidor encontra-se sobrecarregado :(",
+          error:
+            "Limite de requisições atingido. Aguarde alguns segundos e tente novamente.",
+        },
+        {
+          status: 429,
+        }
+      );
+    }
+
+    if (apiError.status == 401) {
+      return Response.json(
+        {
+          error: "Erro de autenticação na API. Verifique sua chave de API.",
         },
         {
           status: 500,
@@ -200,11 +214,20 @@ REGRAS:
       );
     }
 
-    console.error(e);
+    if (apiError.message) {
+      return Response.json(
+        {
+          error: `Erro na API: ${apiError.message}`,
+        },
+        {
+          status: 500,
+        }
+      );
+    }
 
     return Response.json(
       {
-        error: "Erro interno.",
+        error: "Erro interno. Tente novamente.",
       },
       {
         status: 500,
