@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, FormEvent } from "react";
+import Image from "next/image";
 import Markdown from "react-markdown";
 import getGitHubProfile from "@/services/getGitHubProfile";
 import shuffleArray from "@/utils/shuffleArray";
 import UserInput from "./UserInput";
 import ErrorMessage from "./ErrorMessage";
+import DonationMessage from "./DonationMessage";
 import i18n from "@/services/i18n";
 
 type APIBody = GitHubUser & { repos: GitHubRepo[]; language: string };
@@ -38,6 +40,7 @@ export default function UserSection() {
   const { t } = i18n;
   const [isLoading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showDonation, setShowDonation] = useState(false);
   const [text, setText] = useState("");
   const [avatar, setAvatar] = useState("");
   const [name, setName] = useState("");
@@ -55,6 +58,7 @@ export default function UserSection() {
 
     setText("");
     setError("");
+    setShowDonation(false);
     setLoading(true);
 
     try {
@@ -143,11 +147,18 @@ export default function UserSection() {
       setLoading(false);
     } catch (e) {
       setText("");
-      setError((e as Error).message);
+      const errorMessage = (e as Error).message;
+      setError(errorMessage);
+
+      if (
+        errorMessage.includes("Limite de requisições") ||
+        errorMessage.includes("rate limit")
+      ) {
+        setShowDonation(true);
+      }
+
       setLoading(false);
-
       console.error(e);
-
       return;
     }
   }
@@ -163,9 +174,11 @@ export default function UserSection() {
           <div className="flex flex-col items-center mb-8">
             <div className="relative group">
               <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-300"></div>
-              <img
+              <Image
                 src={avatar}
                 alt="avatar"
+                width={128}
+                height={128}
                 className="relative size-32 rounded-full border-4 border-white bg-zinc-50 select-none shadow-xl"
               />
             </div>
@@ -183,6 +196,7 @@ export default function UserSection() {
       )}
 
       {error && <ErrorMessage error={error} />}
+      {showDonation && <DonationMessage />}
     </section>
   );
 }

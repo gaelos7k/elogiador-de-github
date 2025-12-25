@@ -155,13 +155,11 @@ REGRAS:
       stream: true,
     });
 
-    let content = "";
     const stream = new ReadableStream({
       async pull(controller) {
         for await (const event of completion) {
           const choice = event.choices[0];
           const text = choice.delta.content;
-          content += text;
           controller.enqueue(text);
         }
 
@@ -182,7 +180,7 @@ REGRAS:
       return Response.json(
         {
           error:
-            "Limite de requisições atingido. Aguarde alguns segundos e tente novamente.",
+            "Limite de requisições da API atingido. O projeto usa modelo gratuito do OpenRouter com limite de requisições.",
         },
         {
           status: 429,

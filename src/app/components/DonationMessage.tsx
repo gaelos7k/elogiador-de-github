@@ -12,7 +12,7 @@ export default function DonationMessage() {
 
       <div className="w-full mt-2 text-right">
         <a
-          href="https://livepix.gg/leosegfault"
+          href="https://livepix.gg/gaelos7k"
           className="p-1 px-4 bg-blue-500 text-base rounded-lg text-white"
         >
           {t("support")}

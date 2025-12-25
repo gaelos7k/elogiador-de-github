@@ -21,6 +21,8 @@ const resources: Resource = {
         timeout: "A API demorou demais para processar.",
         github: "A API do GitHub está instavél. Aguarde até que se estabilize.",
         unknown: "Um erro desconhecido ocorreu. Por favor, tente novamente.",
+        rateLimit:
+          "Limite de requisições da API gratuita atingido. O projeto usa modelo gratuito do OpenRouter com limite de requisições. Considere fazer uma doação para manter o serviço funcionando sem limites!",
       },
       donation: {
         title: "Gostou? Então apoie!",
@@ -48,6 +50,8 @@ const resources: Resource = {
         timeout: "API took too long to process.",
         github: "GitHub API is unstable. Please wait until it stabilizes.",
         unknown: "An unknown error occurred. Please try again.",
+        rateLimit:
+          "Free API rate limit reached. This project uses OpenRouter's free tier with request limits. Consider donating to keep the service running without limits!",
       },
       donation: {
         title: "Did you like it? So donate!",
