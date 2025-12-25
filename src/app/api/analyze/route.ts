@@ -32,11 +32,6 @@ const schema = z.object({
   language: z.string().length(2),
 });
 
-const client = new OpenAI({
-  baseURL: process.env.BASE_URL,
-  apiKey: process.env.API_KEY,
-});
-
 export async function POST(req: Request) {
   if (!process.env.BASE_URL || !process.env.API_KEY || !process.env.MODEL) {
     console.error("Missing required environment variables");
@@ -50,6 +45,11 @@ export async function POST(req: Request) {
       }
     );
   }
+
+  const client = new OpenAI({
+    baseURL: process.env.BASE_URL,
+    apiKey: process.env.API_KEY,
+  });
 
   const { success, data, error } = schema.safeParse(await req.json());
   if (!success) {
