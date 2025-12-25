@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { NextResponse } from "next/server";
 import OpenAI, { type APIError } from "openai";
-import redis from "@/services/redis";
 
 const repoSchema = z.object({
   name: z.string(),
@@ -65,13 +64,6 @@ export async function POST(req: Request) {
         status: 400,
       }
     );
-  }
-
-  const cachedAnalysis = await redis?.get(
-    "analysis:" + data.username.toLowerCase()
-  );
-  if (cachedAnalysis) {
-    return new NextResponse(cachedAnalysis as string);
   }
 
   try {
@@ -171,11 +163,6 @@ REGRAS:
           const text = choice.delta.content;
           content += text;
           controller.enqueue(text);
-        }
-
-        if (redis) {
-          redis.set("analysis:" + data.username.toLowerCase(), content);
-          redis.expire("analysis:" + data.username.toLowerCase(), 60 * 10);
         }
 
         controller.close();
