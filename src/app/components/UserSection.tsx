@@ -63,29 +63,27 @@ export default function UserSection() {
       setAvatar(user.avatar_url);
       setName(user.name ?? user.login);
 
-      // Pegar repos não arquivados e não forks
-      const activeRepos = repos.filter(r => !r.archived && !r.fork);
-      
-      // Se não tiver repos ativos suficientes, usar todos
+      const activeRepos = repos.filter((r) => !r.archived && !r.fork);
+
       const reposToUse = activeRepos.length >= 5 ? activeRepos : repos;
-      
-      // Embaralhar e pegar 5
+
       shuffleArray(reposToUse);
       const analysisRepos = reposToUse.slice(0, 5);
 
-      // Garantir que o repo mais popular está incluído
       const sortedByStars = [...reposToUse].sort(
         (a, b) => b.stargazers_count - a.stargazers_count
       );
       const mostPopularRepo = sortedByStars[0];
-      
-      if (mostPopularRepo && analysisRepos.findIndex((v) => v.id === mostPopularRepo.id) === -1) {
+
+      if (
+        mostPopularRepo &&
+        analysisRepos.findIndex((v) => v.id === mostPopularRepo.id) === -1
+      ) {
         analysisRepos[0] = mostPopularRepo;
       }
 
-      // Remover duplicatas por ID (garantia extra)
       const uniqueRepos = Array.from(
-        new Map(analysisRepos.map(r => [r.id, r])).values()
+        new Map(analysisRepos.map((r) => [r.id, r])).values()
       ).slice(0, 5);
 
       const body: APIBody = {
@@ -163,7 +161,6 @@ export default function UserSection() {
       {text && (
         <div className="mt-10 bg-white rounded-2xl shadow-2xl shadow-emerald-100 p-8 border border-emerald-100/50 backdrop-blur-sm animate-fade-in">
           <div className="flex flex-col items-center mb-8">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <div className="relative group">
               <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-300"></div>
               <img
@@ -173,7 +170,9 @@ export default function UserSection() {
               />
             </div>
 
-            <h2 className="mt-4 text-center text-2xl font-bold text-zinc-800">{name}</h2>
+            <h2 className="mt-4 text-center text-2xl font-bold text-zinc-800">
+              {name}
+            </h2>
             <div className="h-1 w-20 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 rounded-full mt-2"></div>
           </div>
 

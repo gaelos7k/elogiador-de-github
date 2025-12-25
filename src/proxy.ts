@@ -16,7 +16,7 @@ export const config = {
 
 export async function proxy(req: NextRequest) {
   if (req.method != "POST") return NextResponse.redirect(new URL("/", req.url));
-  if (!redis) return; // Ratelimiting desativado
+  if (!redis) return;
 
   const ip = req.headers.get("x-forwarded-for");
   if (!ip) {

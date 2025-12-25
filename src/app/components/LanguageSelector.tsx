@@ -25,7 +25,6 @@ export default function LanguageSelector() {
     if (savedLanguage) {
       setLanguage(savedLanguage);
 
-      // Gambiarra para alterar no próximo tick, já que o hook não funciona no mesmo instante
       setTimeout(() => i18n.changeLanguage(savedLanguage));
     }
   }, [i18n, language]);

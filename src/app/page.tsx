@@ -9,7 +9,6 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50">
       <div className="container mx-auto px-4 pt-16 pb-20">
-        {/* Hero Section */}
         <div className="text-center mb-16 animate-fade-in">
           <h1 className="text-5xl md:text-7xl font-black bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 bg-clip-text text-transparent select-none mb-4 drop-shadow-sm">
             {t("title")}
@@ -19,7 +18,6 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Main Content */}
         <div className="max-w-3xl mx-auto">
           <UserSection />
         </div>
